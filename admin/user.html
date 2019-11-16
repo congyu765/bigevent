@@ -90,7 +90,7 @@
         $('.btn-edit').on('click',function(e){
             e.preventDefault();
             var fd = new FormData(document.querySelector('#form'));
-            console.log(fd);
+            // console.log(fd);
             // console.log(BigNew.user_edit);
             $.ajax({
                 type:'post',
@@ -98,8 +98,11 @@
                 data:fd,
                 contentType:false,
                 processData:false,
-                success:function(res){
-                    // if(res.)
+                success:function(res){  
+                    if(res.code == 200){
+                        // parent.location.reload();
+                        parent.loadinfo();
+                    }
                 }
             })
         })
