@@ -13,6 +13,8 @@
     <script src="./libs/jquery-1.12.4.min.js"></script>
     <!-- 引入模板引擎js文件 -->
     <script src="./libs/template-web.js"></script>
+    <script src="./libs/bootstrap/js/bootstrap.min.js"></script>
+    <script src="./libs/jquery.twbsPagination.js"></script>
 </head>
 
 <body>
@@ -69,9 +71,113 @@
                 </tbody>
             </table>
             <div class="row text-center">
+                <ul id="pagination-demo" class="pagination-sm"></ul>
             </div>
         </div>
     </div>
+    <script src="./libs/http.js"></script>
+    <script id="ctemp" type="text/html">
+        <option value="">所有分类</option>
+        {{each data v}}
+            <option value="{{v.id}}">{{v.name}}</option>
+        {{/each}}
+    </script>
+    <script id="artemp" type="text/html">
+        {{each data.data v}}
+            <tr>
+                <td>{{v.title}}</td>
+                <td>{{v.author}}</td>
+                <td>{{v.category}}</td>
+                <td class="text-center">{{v.date}}</td>
+                <td class="text-center">{{v.state}}</td>
+                <td class="text-center">
+                    <a href="article_edit.html?id={{v.id}}" class="btn btn-default btn-xs">编辑</a>
+                    <a data-id="{{v.id}}" class="btn btn-danger btn-xs delete">删除</a>
+                </td>
+            </tr>
+        {{/each}}
+    </script>
+    <script>
+        $(function(){
+            var mypage = 1;
+            $.ajax({
+                url:BigNew.category_list,
+                success:function(res){
+                    if(res.code == 200){
+                       var chtml = template('ctemp',res);
+                       $('#selCategory').html(chtml);
+                    }
+                }
+            });
+            getDate(1,function(res){
+                $('#pagination-demo').twbsPagination({
+                    totalPages: res.data.totalPage,
+                    visiblePages: 7,
+                    first:'首页',
+                    last:'尾页',
+                    prev:'上一页',
+                    next:'下一页',
+                    onPageClick: function (event, page) {
+                        getDate(page);
+                        mypage = page;
+                    }
+                });
+            })
+            function getDate(lpage,callback){
+                $.ajax({
+                    url:BigNew.article_query,
+                    data:{
+                        type:$('#selCategory').val(),
+                        state:$('#selStatus').val(),
+                        page:lpage,
+                        perpage:8
+                    },
+                    success:function(res){
+                        // console.log(res);
+                        if(res.code == 200){
+                            var arhtml = template('artemp',res);
+                            $('tbody').html(arhtml);
+                            $('#pagination-demo').show();
+                            if(callback){
+                                callback(res);
+                            }
+                        }
+                    }
+                });
+            }
+            $('#btnSearch').on('click',function(e){
+                e.preventDefault();
+                getDate(1,function(res){
+                    if(res.data.data.length == 0){
+                        $('#pagination-demo').hide();
+                        return;
+                    }
+                    $('#pagination-demo').twbsPagination('changeTotalPages',res.data.totalPage,1);
+                });
+            })
+            $('tbody').on('click','.delete',function(e){
+                e.preventDefault();
+                var id = $(this).attr('data-id');
+                $.ajax({
+                    type:'post',
+                    url:BigNew.article_delete,
+                    data:{
+                        id:id
+                    },
+                    success:function(res){
+                        if(res.code == 204){
+                            getDate(mypage,function(res){
+                                if(res.data.data.length == 0){
+                                    mypage--;
+                                }
+                                $('#pagination-demo').twbsPagination('changeTotalPages',res.data.totalPage,mypage);
+                            });
+                        }
+                    }
+                })
+            })
+        })
+    </script>
 </body>
 
 </html>
