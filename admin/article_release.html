@@ -10,6 +10,10 @@
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/iconfont.css">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="./libs/jedate/css/jeDate-test.css">
+    <link rel="stylesheet" href="./libs/jedate/css/jedate.css">
+    <script src="./libs/jedate/js/jedate.js"></script>
+    <script src="./libs/wangEditor.min.js"></script>
     <!-- jq -->
     <script src="./libs/jquery-1.12.4.min.js"></script>
     <!-- 模板引擎 -->
@@ -50,12 +54,17 @@
                 </div>
                 <div class="form-group">
                     <label class="col-sm-2 control-label">发布时间：</label>
-                    <div class="col-sm-4">
+                    <div class="jeinpbox col-sm-4">
+                        <input type="text" name="date" class="jeinput" id="testico" placeholder="YYYY-MM-DD">
+                        <div class="icons jebtns" onclick="jeDate('#testico',{trigger:false,zIndex:20990,format: 'YYYY-MM-DD'})"></div>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章内容：</label>
                     <div class="col-sm-10">
+                        <div id="editor">
+                            <p>欢迎使用 <b>wangEditor</b> 富文本编辑器</p>
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -67,6 +76,80 @@
             </form>
         </div>
     </div>
+    <script id="c_temp" type="text/html">
+        {{each data v}}
+            <option value="{{v.id}}">{{v.name}}</option>
+        {{/each}}
+    </script>
+    <script src="./libs/http.js"></script>
+    <script>
+        $(function(){
+            $('#inputCover').on('change',function(){
+                var file = $(this)[0].files[0];
+                var url = URL.createObjectURL(file);
+                $(this).prev().attr('src',url);
+            });
+            jeDate('#testico',{
+                 //初始化当前系统时间
+                isinitVal:true,
+                //红色主题
+                format: "YYYY-MM-DD",
+                isTime: false,
+                zIndex:20990,
+                minDate: "2014-09-19 00:00:00",
+                //点击确定后的回调函数
+                // donefun:function(obj) {
+                //     console.log(obj);
+                // },
+            })
+            var E = window.wangEditor;
+            var editor = new E('#editor');
+            // 或者 var editor = new E( document.getElementById('editor') )
+            editor.create();
+            var id = location.search.split('=')[1];
+            $.ajax({
+                url:BigNew.category_list
+            }).then(function(res){
+                if(res.code == 200){
+                   var reshtml = template('c_temp',res);
+                   $('.category').html(reshtml);
+                }
+            })
+            $('.btn-edit').on('click',function(e){
+                e.preventDefault();
+                var fd = new FormData(document.querySelector('#form'));
+                fd.append('content',editor.txt.html());
+                fd.append('state','已发布');
+                $.ajax({
+                    type:'post',
+                    url:BigNew.article_publish,
+                    data:fd,
+                    contentType:false,
+                    processData:false
+                }).then(function(res){
+                    if(res.code == 200){
+                        history.back();
+                    }
+                })
+            })
+            $('.btn-draft').on('click',function(e){
+                e.preventDefault();
+                var fd = new FormData(document.querySelector('#form'));
+                fd.append('content',editor.txt.html());
+                $.ajax({
+                    type:'post',
+                    url:BigNew.article_publish,
+                    data:fd,
+                    contentType:false,
+                    processData:false
+                }).then(function(res){
+                    if(res.code == 200){
+                        history.back();
+                    }
+                })
+            })
+        })
+    </script>
 </body>
 
 </html>

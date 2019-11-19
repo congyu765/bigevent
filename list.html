@@ -227,6 +227,37 @@
     </div>
     <!-- 导包template -->
     <script src="./js/template-web.js"></script>
+    <script id='latest_temp' type="text/html">
+        <div class="list_title">
+            <h3>{{data.data[0].category}}</h3>
+        </div>
+        {{each data.data v}}
+            <div class="common_news_list">
+                <a href="./article.html?id={{v.id}}" class="list_pic"><img src={{v.cover}} alt=""></a>
+                <h4><a href="./article.html?id={{v.id}}">{{v.title}} </a></h4>
+                <p>{{@ v.content}}</p>
+                <div class="new_info">
+                    <span>标签：{{v.category}}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<i class="fa fa-eye"></i>&nbsp;阅读( {{v.read}}
+                        )&nbsp;&nbsp;&nbsp;<i class="fa fa-commenting"></i>&nbsp;评论( {{v.comments}} )</span>
+                    <b>发布于 {{v.date}}</b>
+                </div>
+            </div>
+        {{/each}}
+    </script>
+    <script>
+        $(function(){
+            var id = location.search.split('=')[1];
+            $.ajax({
+                url:'http://localhost:8080/api/v1/index/search',
+                data:{
+                    type:id
+                }
+            }).then(function(res){
+                var reshtml = template('latest_temp',res);
+                $('.left_con.setfr').html(reshtml);
+            })
+        })
+    </script>
 </body>
 
 </html>

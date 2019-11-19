@@ -208,7 +208,32 @@
     <!-- 引入模板引擎js文件 -->
     <script src="./js/template-web.js"></script>
     <script src="./js/jquery-1.12.4.min.js"></script>
-
+    <script id="info_temp" type="text/html">
+        {{data.author}} 发布于 {{data.date}}&nbsp;&nbsp;&nbsp;分类: {{data.category}}&nbsp;&nbsp;&nbsp;阅读:
+                ({{data.read}})&nbsp;&nbsp;&nbsp;评论: ({{data.comments}})
+    </script>
+    <script>
+        $(function(){
+            var id = location.search.split('=')[1];
+            $.ajax({
+                url:'http://localhost:8080/api/v1/index/article',
+                data:{
+                    id:id
+                }
+            }).then(function(res){
+                console.log(res);
+                
+                if(res.code == 200){
+                    $('.article_title').text(res.data.title);
+                    $('.article_con').html(res.data.content);
+                    var reshtml = template('info_temp',res);
+                    $('.article_info').html(reshtml);
+                    $('.article_links a').eq(0).text(res.data.prev.title).attr('href','./article.html?id=' + res.data.prev.id);
+                    $('.article_links a').eq(1).text(res.data.next.title).attr('href','./article.html?id=' + res.data.next.id);
+                }
+            })
+        })
+    </script>
 </body>
 
 </html>
